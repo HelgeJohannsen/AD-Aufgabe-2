@@ -53,13 +53,13 @@ test_random(ListSize, Functions) ->
   RandomList = util:randomliste(ListSize),
   SRandomList = lists:sort(RandomList),
   io:format("~n~n===== Test zufaellige Liste =====~n~n"),
-  lists:foreach(fun(DescFuncTuple) -> run(RandomList, SRandomList, DescFuncTuple) end, Functions).
+  lists:foreach(fun(DescFuncTuple) -> calcTime(RandomList, SRandomList, DescFuncTuple) end, Functions).
 
 test_randomMinMax(ListSize, Min, Max, Functions) ->
   RandomList = util:randomlisteD(ListSize,Min,Max),
   SRandomList = lists:sort(RandomList),
   io:format(lists:concat(["~n~n===== Test Random mit Min: ",Min," und Max: ",  Max, " =====~n~n"])),
-  lists:foreach(fun(DescFuncTuple) -> run(RandomList, SRandomList, DescFuncTuple) end, Functions).
+  lists:foreach(fun(DescFuncTuple) -> calcTime(RandomList, SRandomList, DescFuncTuple) end, Functions).
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %% Listen sortiert   %%
@@ -69,7 +69,7 @@ test_sorted(ListSize, Functions) ->
   RandomList = util:sortliste(ListSize),
   SRandomList = lists:sort(RandomList),
   io:format("~n~n===== Test sortierte Liste =====~n~n"),
-  lists:foreach(fun(DescFuncTuple) -> run(RandomList, SRandomList, DescFuncTuple) end, Functions).
+  lists:foreach(fun(DescFuncTuple) -> calcTime(RandomList, SRandomList, DescFuncTuple) end, Functions).
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %% Listen reverse    %%
@@ -79,7 +79,7 @@ test_reverse(ListSize, Functions) ->
   RandomList = util:resortliste(ListSize),
   SRandomList = lists:sort(RandomList),
   io:format("~n~n===== Test reversierte Liste =====~n~n"),
-  lists:foreach(fun(DescFuncTuple) -> run(RandomList, SRandomList, DescFuncTuple) end, Functions).
+  lists:foreach(fun(DescFuncTuple) -> calcTime(RandomList, SRandomList, DescFuncTuple) end, Functions).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Optimaler SwitchNum Test %%
@@ -110,7 +110,7 @@ test_switchnum(Pivot, L, CurrentSwitchNum, Best) ->
 
 %%%%%%%%%%%%%%%%%%%%%%%
 
-run(ListToSort, SortedList, {Description, Func}) ->
+calcTime(ListToSort, SortedList, {Description, Func}) ->
   StartTime = erlang:timestamp(),
   ReturnedList = Func(ListToSort),
   StopTime = erlang:timestamp(),
