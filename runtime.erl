@@ -45,12 +45,13 @@ run_tests() ->
   ],
 
   io:format("Size: ~p , Min: ~p , Max: ~p , SwitchNum: ~p~n", [ListSize, Min, Max, SwitchNum]),
-  test(ListSize, Lists, Funcs),
+  test(Lists, Funcs),
+  test_switchnum(Lists),
   io:format("~nDone.").
 
 %%%%%%%%%%%%%%%%%%%%%%%
 
-test(ListSize, Lists, Functions) ->
+test(Lists, Functions) ->
   lists:foreach(fun
     ({Desc, ListGen}) ->
       io:format("~n~n===== Test ~p =====~n~n", [Desc]),
@@ -60,18 +61,19 @@ test(ListSize, Lists, Functions) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Optimaler SwitchNum Test %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Testing SwitchNum 1 to 100
 
-test_switchnum(ListSize) ->
-  RandomList = util:randomliste(ListSize),
-  io:format("~n~n===== Test optimale SwitchNum =====~n~n"),
-  Pivots = [left,middle,right,median,random],
-  lists:foreach(fun(Pivot) -> test_switchnum(Pivot, RandomList, 1, {nil,nil}) end, Pivots).
+test_switchnum(Lists) ->
+  Pivots = [left, middle, right, median, random],
+  lists:foreach(fun
+    ({Desc, ListGen}) ->
+      io:format("~n~n===== Test optimale SwitchNum ~p =====~n~n", [Desc]),
+      lists:foreach(fun(Pivot) -> test_switchnum(Pivot, ListGen(), 1, 100, {nil,nil}) end, Pivots)
+  end, Lists).
 
-test_switchnum(Pivot, _, 101, {SwitchNum, _Time}) ->
-  io:format("~nPivot: ~p , BestSwitchNum: ~p~n", [Pivot, SwitchNum]);
+test_switchnum(Pivot, _, CurrentSwitchNum, LIM, {SwitchNum, _Time}) when CurrentSwitchNum > LIM->
+  io:format("Pivot: ~p , BestSwitchNum: ~p~n", [Pivot, SwitchNum]);
 
-test_switchnum(Pivot, L, CurrentSwitchNum, Best) ->
+test_switchnum(Pivot, L, CurrentSwitchNum, LIM, Best) ->
   StartTime = erlang:timestamp(),
   ksort:qsort(Pivot, L, CurrentSwitchNum),
   StopTime = erlang:timestamp(),
@@ -81,7 +83,8 @@ test_switchnum(Pivot, L, CurrentSwitchNum, Best) ->
               {_, Time} when Duration < Time -> {CurrentSwitchNum, Duration};
               _ -> Best
             end,
-  test_switchnum(Pivot, L, CurrentSwitchNum+1, NewBest).
+  io:format("."),
+  test_switchnum(Pivot, L, CurrentSwitchNum+1, LIM, NewBest).
 
 %%%%%%%%%%%%%%%%%%%%%%%
 
@@ -91,5 +94,5 @@ calcTime(ListToSort, {Description, Func}) ->
   StopTime = erlang:timestamp(),
   Successful = (ReturnedList == lists:sort(ListToSort)),
   Duration = round(timer:now_diff(StopTime,StartTime)/1000),
-  io:format(lists:concat([Description," - Sortiert: ",Successful, "\t\tDauer in ms: ", Duration, "~n"])).
+  io:format(lists:concat([Description," - Sortiert: ", Successful, "\t\tDauer in ms: ", Duration, "~n"])).
 
