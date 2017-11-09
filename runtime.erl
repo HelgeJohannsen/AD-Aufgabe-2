@@ -37,51 +37,25 @@ run_tests() ->
     {"qsort random  ", fun(L) -> ksort:qsort(random, L, SwitchNum) end}
   ],
 
+  Lists = [
+    {"random list", fun() -> util:randomliste(ListSize) end},
+    {"random minmax list", fun() -> util:randomlisteD(ListSize, Min, Max) end},
+    {"sorted list", fun() -> util:sortliste(ListSize) end},
+    {"reversed list", fun() -> util:resortliste(ListSize) end}
+  ],
+
   io:format("Size: ~p , Min: ~p , Max: ~p , SwitchNum: ~p~n", [ListSize, Min, Max, SwitchNum]),
-
-  test_random(ListSize, Funcs),
-  test_randomMinMax(ListSize, Min, Max, Funcs),
-  test_sorted(ListSize, Funcs),
-  test_reverse(ListSize, Funcs),
-  test_switchnum(ListSize),
-
+  test(ListSize, Lists, Funcs),
   io:format("~nDone.").
 
 %%%%%%%%%%%%%%%%%%%%%%%
-%% Listen unsortiert %%
-%%%%%%%%%%%%%%%%%%%%%%%
 
-test_random(ListSize, Functions) ->
-  RandomList = util:randomliste(ListSize),
-  SRandomList = lists:sort(RandomList),
-  io:format("~n~n===== Test zufaellige Liste =====~n~n"),
-  lists:foreach(fun(DescFuncTuple) -> calcTime(RandomList, SRandomList, DescFuncTuple) end, Functions).
-
-test_randomMinMax(ListSize, Min, Max, Functions) ->
-  RandomList = util:randomlisteD(ListSize,Min,Max),
-  SRandomList = lists:sort(RandomList),
-  io:format(lists:concat(["~n~n===== Test Random mit Min: ",Min," und Max: ",  Max, " =====~n~n"])),
-  lists:foreach(fun(DescFuncTuple) -> calcTime(RandomList, SRandomList, DescFuncTuple) end, Functions).
-
-%%%%%%%%%%%%%%%%%%%%%%%
-%% Listen sortiert   %%
-%%%%%%%%%%%%%%%%%%%%%%%
-
-test_sorted(ListSize, Functions) ->
-  RandomList = util:sortliste(ListSize),
-  SRandomList = lists:sort(RandomList),
-  io:format("~n~n===== Test sortierte Liste =====~n~n"),
-  lists:foreach(fun(DescFuncTuple) -> calcTime(RandomList, SRandomList, DescFuncTuple) end, Functions).
-
-%%%%%%%%%%%%%%%%%%%%%%%
-%% Listen reverse    %%
-%%%%%%%%%%%%%%%%%%%%%%%
-
-test_reverse(ListSize, Functions) ->
-  RandomList = util:resortliste(ListSize),
-  SRandomList = lists:sort(RandomList),
-  io:format("~n~n===== Test reversierte Liste =====~n~n"),
-  lists:foreach(fun(DescFuncTuple) -> calcTime(RandomList, SRandomList, DescFuncTuple) end, Functions).
+test(ListSize, Lists, Functions) ->
+  lists:foreach(fun
+    ({Desc, ListGen}) ->
+      io:format("~n~n===== Test ~p =====~n~n", [Desc]),
+      lists:foreach(fun(DescFuncTuple) -> calcTime(ListGen(), DescFuncTuple) end, Functions)
+  end, Lists).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Optimaler SwitchNum Test %%
@@ -89,7 +63,7 @@ test_reverse(ListSize, Functions) ->
 %% Testing SwitchNum 1 to 100
 
 test_switchnum(ListSize) ->
-  RandomList = util:resortliste(ListSize),
+  RandomList = util:randomliste(ListSize),
   io:format("~n~n===== Test optimale SwitchNum =====~n~n"),
   Pivots = [left,middle,right,median,random],
   lists:foreach(fun(Pivot) -> test_switchnum(Pivot, RandomList, 1, {nil,nil}) end, Pivots).
@@ -98,7 +72,6 @@ test_switchnum(Pivot, _, 101, {SwitchNum, _Time}) ->
   io:format("~nPivot: ~p , BestSwitchNum: ~p~n", [Pivot, SwitchNum]);
 
 test_switchnum(Pivot, L, CurrentSwitchNum, Best) ->
-  io:format("~p ", [CurrentSwitchNum]),
   StartTime = erlang:timestamp(),
   ksort:qsort(Pivot, L, CurrentSwitchNum),
   StopTime = erlang:timestamp(),
@@ -112,11 +85,11 @@ test_switchnum(Pivot, L, CurrentSwitchNum, Best) ->
 
 %%%%%%%%%%%%%%%%%%%%%%%
 
-calcTime(ListToSort, SortedList, {Description, Func}) ->
+calcTime(ListToSort, {Description, Func}) ->
   StartTime = erlang:timestamp(),
   ReturnedList = Func(ListToSort),
   StopTime = erlang:timestamp(),
-  Successful = ReturnedList == SortedList,
+  Successful = (ReturnedList == lists:sort(ListToSort)),
   Duration = round(timer:now_diff(StopTime,StartTime)/1000),
   io:format(lists:concat([Description," - Sortiert: ",Successful, "\t\tDauer in ms: ", Duration, "~n"])).
 
